@@ -1,6 +1,6 @@
 # 🎯 Algorhythm - Interactive Algorithm Visualizer
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](https://algorhythm.netlify.app)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![React](https://img.shields.io/badge/React-18.2.0-blue)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.2.2-blue)](https://www.typescriptlang.org/)
@@ -8,7 +8,7 @@
 
 > Transform complex algorithms into beautiful, interactive visualizations. Submit your algorithm questions and get custom HTML visualizations with step-by-step explanations in your preferred programming language.
 
-![Algorhythm Preview](https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=600&fit=crop&crop=center)
+
 
 ## ✨ Features
 
