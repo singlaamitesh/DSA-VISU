@@ -114,3 +114,5 @@ n8n-*.json
 *.bak
 *.swp
 *.tmp
+# Superpowers brainstorming
+.superpowers/
