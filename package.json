@@ -9,9 +9,7 @@
     "visualization",
     "education",
     "react",
-    "typescript",
-    "supabase",
-    "n8n"
+    "typescript"
   ],
   "author": "Algorhythm Team",
   "license": "MIT",
@@ -40,11 +38,13 @@
     "react-hot-toast": "^2.4.1",
     "clsx": "^2.0.0",
     "tailwind-merge": "^2.2.0",
-    "@supabase/supabase-js": "^2.39.0"
+    "framer-motion": "^11.0.0",
+    "prismjs": "^1.29.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
+    "@types/prismjs": "^1.26.0",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",
