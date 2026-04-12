@@ -3,13 +3,18 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Interactive Algorithm Visualizer - Transform complex algorithms into beautiful, interactive visualizations",
+  "description": "Interactive Algorithm Visualizer — 12+ built-in algorithms with step-by-step animations and AI-powered custom visualization",
   "keywords": [
     "algorithms",
     "visualization",
     "education",
     "react",
-    "typescript"
+    "typescript",
+    "firebase",
+    "framer-motion",
+    "openrouter",
+    "gemini",
+    "algorithm-visualization"
   ],
   "author": "Algorhythm Team",
   "license": "MIT",

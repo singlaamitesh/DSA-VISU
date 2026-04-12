@@ -26,8 +26,8 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          supabase: ['@supabase/supabase-js'],
-          ui: ['lucide-react', 'react-hot-toast'],
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          ui: ['lucide-react', 'react-hot-toast', 'framer-motion'],
         },
       },
     },
