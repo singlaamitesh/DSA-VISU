@@ -1,35 +1,29 @@
-// Application constants and configuration
 export const APP_CONFIG = {
   name: 'Algorhythm',
   description: 'Interactive Algorithm Visualizer',
-  version: '1.0.0',
-  author: 'Algorhythm Team',
-  repository: 'https://github.com/yourusername/algorhythm',
-  demo: 'https://algorhythm.netlify.app',
+  version: '2.0.0',
+  repository: 'https://github.com/singlaamitesh/algorhythm',
 } as const;
 
-export const API_CONFIG = {
-  supabase: {
-    url: import.meta.env.VITE_SUPABASE_URL,
-    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-  },
-  n8n: {
-    webhookUrl: import.meta.env.VITE_N8N_WEBHOOK_URL,
-    apiKey: import.meta.env.VITE_N8N_API_KEY,
-  },
+export const FIREBASE_CONFIG = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 } as const;
 
-export const FEATURES = {
-  authentication: true,
-  realTimeUpdates: true,
-  n8nIntegration: true,
-  adminDashboard: true,
-  downloadSolutions: true,
+export const VISUALIZER_CONFIG = {
+  defaultSpeed: 50,
+  minSpeed: 1,
+  maxSpeed: 100,
+  defaultArraySize: 20,
+  maxArraySize: 50,
+  maxArrayValue: 100,
 } as const;
 
-export const LIMITS = {
-  maxQuestionLength: 1000,
-  maxFileSize: 5 * 1024 * 1024, // 5MB
-  maxQuestionsPerUser: 100,
-  pollingInterval: 30000, // 30 seconds
+export const AI_CONFIG = {
+  generateEndpoint: '/.netlify/functions/generate-visualization',
+  maxGenerationsPerDay: 10,
 } as const;
