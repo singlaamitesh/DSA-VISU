@@ -1,46 +1,25 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import { motion } from 'framer-motion';
 import Header from './Header';
+import Footer from './Footer';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  useEffect(() => {
-    // Create minimal floating particles
-    const createParticles = () => {
-      const container = document.createElement('div');
-      container.className = 'floating-particles';
-      
-      for (let i = 0; i < 15; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 15 + 's';
-        particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
-        
-        container.appendChild(particle);
-      }
-      
-      document.body.appendChild(container);
-    };
-
-    createParticles();
-
-    return () => {
-      const particles = document.querySelector('.floating-particles');
-      if (particles) {
-        particles.remove();
-      }
-    };
-  }, []);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 relative">
+    <div className="min-h-screen bg-slate-900 flex flex-col">
       <Header />
-      <main className="pt-16 relative z-10">
+      <motion.main
+        className="pt-16 flex-1 relative"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         {children}
-      </main>
+      </motion.main>
+      <Footer />
     </div>
   );
 };
