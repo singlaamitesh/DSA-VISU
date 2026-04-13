@@ -14,7 +14,7 @@ const generateRandomArray = (size: number, max: number): number[] =>
   Array.from({ length: size }, () => Math.floor(Math.random() * max) + 1);
 
 const InputConfigurator: React.FC<InputConfiguratorProps> = ({ category, onGenerate }) => {
-  const [arraySize, setArraySize] = useState(VISUALIZER_CONFIG.defaultArraySize);
+  const [arraySize, setArraySize] = useState<number>(VISUALIZER_CONFIG.defaultArraySize);
   const [customInput, setCustomInput] = useState('');
   const [customError, setCustomError] = useState('');
 

@@ -17,7 +17,7 @@ interface HistoryState {
   deleteGeneration: (id: string) => Promise<void>;
 }
 
-export const useHistoryStore = create<HistoryState>((set, get) => ({
+export const useHistoryStore = create<HistoryState>((set, _get) => ({
   generations: [],
   loading: false,
 

@@ -1,5 +1,3 @@
-import { VISUALIZER_CONFIG } from '../config/constants';
-
 export const validateEnvironment = () => {
   const required = [
     'VITE_FIREBASE_API_KEY',
