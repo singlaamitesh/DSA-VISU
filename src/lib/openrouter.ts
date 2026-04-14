@@ -1,17 +1,15 @@
 import { AI_CONFIG } from '../config/constants';
-import { auth } from './firebase';
+import { supabase } from './supabase';
 
 export const generateVisualization = async (prompt: string): Promise<string> => {
-  const user = auth.currentUser;
-  if (!user) throw new Error('Authentication required');
-
-  const token = await user.getIdToken();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Authentication required');
 
   const response = await fetch(AI_CONFIG.generateEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${session.access_token}`,
     },
     body: JSON.stringify({ prompt }),
   });

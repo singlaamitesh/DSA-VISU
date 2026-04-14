@@ -15,7 +15,7 @@ const Header: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const getUserDisplayName = () => {
-    return user?.displayName || user?.email?.split('@')[0] || 'User';
+    return user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
   };
 
   const handleSignOut = async () => {

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 
 export interface AIGeneration {
   id: string;
@@ -17,24 +16,27 @@ interface HistoryState {
   deleteGeneration: (id: string) => Promise<void>;
 }
 
-export const useHistoryStore = create<HistoryState>((set, _get) => ({
+export const useHistoryStore = create<HistoryState>((set) => ({
   generations: [],
   loading: false,
 
   loadHistory: async (userId) => {
     set({ loading: true });
     try {
-      const q = query(
-        collection(db, 'generations'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
-      );
-      const snap = await getDocs(q);
-      const generations = snap.docs.map((d) => ({
+      const { data, error } = await supabase
+        .from('generations')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const generations = (data || []).map((d: any) => ({
         id: d.id,
-        ...d.data(),
-        createdAt: (d.data().createdAt as Timestamp).toDate(),
-      })) as AIGeneration[];
+        prompt: d.prompt,
+        html: d.html,
+        createdAt: new Date(d.created_at),
+      }));
       set({ generations });
     } catch (error) {
       console.error('Error loading history:', error);
@@ -45,10 +47,20 @@ export const useHistoryStore = create<HistoryState>((set, _get) => ({
 
   saveGeneration: async (userId, prompt, html) => {
     try {
-      const docRef = await addDoc(collection(db, 'generations'), {
-        userId, prompt, html, createdAt: Timestamp.now(),
-      });
-      const newGen: AIGeneration = { id: docRef.id, prompt, html, createdAt: new Date() };
+      const { data, error } = await supabase
+        .from('generations')
+        .insert([{ user_id: userId, prompt, html }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newGen: AIGeneration = {
+        id: data.id,
+        prompt: data.prompt,
+        html: data.html,
+        createdAt: new Date(data.created_at),
+      };
       set((s) => ({ generations: [newGen, ...s.generations] }));
     } catch (error) {
       console.error('Error saving generation:', error);
@@ -57,7 +69,12 @@ export const useHistoryStore = create<HistoryState>((set, _get) => ({
 
   deleteGeneration: async (id) => {
     try {
-      await deleteDoc(doc(db, 'generations', id));
+      const { error } = await supabase
+        .from('generations')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
       set((s) => ({ generations: s.generations.filter((g) => g.id !== id) }));
     } catch (error) {
       console.error('Error deleting generation:', error);

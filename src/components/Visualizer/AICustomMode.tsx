@@ -25,10 +25,10 @@ const AICustomMode: React.FC = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    if (user?.uid) {
-      loadHistory(user.uid);
+    if (user?.id) {
+      loadHistory(user.id);
     }
-  }, [user?.uid]);
+  }, [user?.id]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -39,8 +39,8 @@ const AICustomMode: React.FC = () => {
     try {
       const result = await generateVisualization(prompt.trim());
       setHtml(result);
-      if (user?.uid) {
-        await saveGeneration(user.uid, prompt.trim(), result);
+      if (user?.id) {
+        await saveGeneration(user.id, prompt.trim(), result);
       }
     } catch (err: any) {
       setError(err.message || 'Generation failed. Please try again.');

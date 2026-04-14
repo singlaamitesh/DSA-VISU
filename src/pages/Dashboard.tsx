@@ -74,7 +74,7 @@ const Dashboard: React.FC = () => {
 
   // Load history on mount
   useEffect(() => {
-    if (user) loadHistory(user.uid);
+    if (user) loadHistory(user.id);
   }, [user]);
 
   const thisMonthCount = getThisMonthCount(generations);
@@ -161,7 +161,7 @@ const Dashboard: React.FC = () => {
                     Account
                   </p>
                   <p className="text-white font-semibold text-lg leading-tight">
-                    {user?.displayName || 'User'}
+                    {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
                   </p>
                   <p className="text-slate-400 text-sm">{user?.email}</p>
                 </div>

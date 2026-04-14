@@ -1,22 +1,12 @@
 import { create } from 'zustand';
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  signInWithPopup,
-  sendPasswordResetEmail,
-  updateProfile,
-  onAuthStateChanged,
-  User,
-} from 'firebase/auth';
-import { auth, googleProvider } from '../lib/firebase';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 
 interface AuthState {
   user: User | null;
+  session: Session | null;
   loading: boolean;
   initialized: boolean;
-  setUser: (user: User | null) => void;
-  setLoading: (loading: boolean) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -27,16 +17,15 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  session: null,
   loading: true,
   initialized: false,
-
-  setUser: (user) => set({ user }),
-  setLoading: (loading) => set({ loading }),
 
   signIn: async (email, password) => {
     set({ loading: true });
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
     } finally {
       set({ loading: false });
     }
@@ -45,39 +34,53 @@ export const useAuthStore = create<AuthState>((set) => ({
   signUp: async (email, password, name) => {
     set({ loading: true });
     try {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(user, { displayName: name });
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } },
+      });
+      if (error) throw error;
     } finally {
       set({ loading: false });
     }
   },
 
   signInWithGoogle: async () => {
-    set({ loading: true });
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } finally {
-      set({ loading: false });
-    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) throw error;
   },
 
   signOut: async () => {
     set({ loading: true });
     try {
-      await firebaseSignOut(auth);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     } finally {
       set({ loading: false });
     }
   },
 
   resetPassword: async (email) => {
-    await sendPasswordResetEmail(auth, email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    if (error) throw error;
   },
 
   init: () => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      set({ user, loading: false, initialized: true });
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      set({ user: session?.user ?? null, session, loading: false, initialized: true });
     });
-    return unsubscribe;
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      set({ user: session?.user ?? null, session, loading: false, initialized: true });
+    });
+
+    return () => subscription.unsubscribe();
   },
 }));
