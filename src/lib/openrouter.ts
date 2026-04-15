@@ -1,7 +1,7 @@
 import { AI_CONFIG } from '../config/constants';
 import { supabase } from './supabase';
 
-export const generateVisualization = async (prompt: string): Promise<string> => {
+export const generateVisualization = async (prompt: string, language: string = 'javascript'): Promise<string> => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Authentication required');
 
@@ -11,7 +11,7 @@ export const generateVisualization = async (prompt: string): Promise<string> => 
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${session.access_token}`,
     },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ prompt, language }),
   });
 
   if (!response.ok) {
