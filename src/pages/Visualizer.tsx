@@ -5,8 +5,8 @@ import { Cpu, Sparkles, Lock, Code } from 'lucide-react';
 import Tabs from '../components/UI/Tabs';
 import Badge from '../components/UI/Badge';
 import Card from '../components/UI/Card';
-import AICustomMode from '../components/Visualizer/AICustomMode';
 import CodeBlock from '../components/UI/CodeBlock';
+import AICustomMode from '../components/Visualizer/AICustomMode';
 import AlgorithmSelector from '../components/Visualizer/AlgorithmSelector';
 import InputConfigurator from '../components/Visualizer/InputConfigurator';
 import ControlPanel from '../components/Visualizer/ControlPanel';
@@ -20,6 +20,12 @@ const modeTabs = [
   { id: 'builtin', label: 'Built-in', icon: <Cpu className="w-4 h-4" /> },
   { id: 'ai', label: 'AI Custom', icon: <Sparkles className="w-4 h-4" /> },
 ];
+
+const tabAnim = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.25 },
+};
 
 const Visualizer: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -52,11 +58,7 @@ const Visualizer: React.FC = () => {
       const found = getAlgorithmById(algId);
       if (found) {
         setAlgorithm(found);
-        // generateSteps needs data to be set first; setAlgorithm sets defaultInput
-        // Use a tick delay so the store state settles
-        setTimeout(() => {
-          generateSteps();
-        }, 0);
+        setTimeout(() => { generateSteps(); }, 0);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -65,39 +67,35 @@ const Visualizer: React.FC = () => {
   const handleAlgorithmSelect = (alg: typeof algorithm) => {
     if (!alg) return;
     setAlgorithm(alg);
-    // After setAlgorithm the store sets data = alg.defaultInput; generate immediately
-    setTimeout(() => {
-      generateSteps();
-    }, 0);
+    setTimeout(() => { generateSteps(); }, 0);
   };
 
   const handleInputGenerate = (newData: unknown) => {
     setData(newData ?? algorithm?.defaultInput);
-    setTimeout(() => {
-      generateSteps();
-    }, 0);
+    setTimeout(() => { generateSteps(); }, 0);
   };
 
   const handlePlay = () => {
     if (steps.length === 0) {
       generateSteps();
-      // Give the store a tick to populate steps before playing
-      setTimeout(() => {
-        play();
-      }, 0);
+      setTimeout(() => { play(); }, 0);
     } else {
       play();
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-white">
-      {/* Page header */}
+    <div className="min-h-screen flex flex-col" style={{ background: '#0a0e1a' }}>
+
+      {/* ── Page header ── */}
       <div className="border-b border-white/5 px-4 py-4 md:px-8">
         <div className="max-w-screen-2xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-white">Algorithm Visualizer</h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <h1 className="text-xl font-bold text-text-primary leading-tight">
+              Algorithm{' '}
+              <span className="gradient-text">Visualizer</span>
+            </h1>
+            <p className="text-xs text-text-muted mt-0.5 font-mono">
               Step through algorithms with interactive animations
             </p>
           </div>
@@ -105,41 +103,34 @@ const Visualizer: React.FC = () => {
         </div>
       </div>
 
-      {/* Content area */}
-      <div className="flex-1 overflow-hidden px-4 py-4 md:px-8">
+      {/* ── Content ── */}
+      <div className="flex-1 px-4 py-5 md:px-8 overflow-hidden">
         <div className="max-w-screen-2xl mx-auto h-full">
 
-          {/* ─── BUILT-IN TAB ─── */}
+          {/* ─────────────────── BUILT-IN TAB ─────────────────── */}
           {activeTab === 'builtin' && (
-            <motion.div
-              key="builtin"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-4 h-full"
-            >
-              {/* Main 3-column layout */}
-              <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+            <motion.div key="builtin" {...tabAnim} className="flex flex-col gap-4">
 
-                {/* Left sidebar */}
-                <div className="w-full lg:w-72 flex flex-col gap-4 overflow-y-auto flex-shrink-0">
-                  {/* Algorithm selector */}
-                  <Card className="p-4 flex flex-col gap-3">
-                    <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              {/* Main layout: sidebar + canvas + code */}
+              <div className="flex flex-col lg:flex-row gap-4">
+
+                {/* ── Left sidebar (lg:w-80) ── */}
+                <div className="w-full lg:w-80 flex flex-col gap-4 flex-shrink-0">
+                  <Card variant="surface-1" className="p-4">
+                    <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest mb-3 font-mono">
                       Algorithm
-                    </h2>
+                    </p>
                     <AlgorithmSelector
                       selected={algorithm}
                       onSelect={handleAlgorithmSelect}
                     />
                   </Card>
 
-                  {/* Input configurator */}
                   {algorithm && (
-                    <Card className="p-4 flex flex-col gap-3">
-                      <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <Card variant="surface-1" className="p-4">
+                      <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest mb-3 font-mono">
                         Input
-                      </h2>
+                      </p>
                       <InputConfigurator
                         category={algorithm.category}
                         onGenerate={handleInputGenerate}
@@ -147,7 +138,6 @@ const Visualizer: React.FC = () => {
                     </Card>
                   )}
 
-                  {/* Control panel */}
                   <ControlPanel
                     isPlaying={isPlaying}
                     speed={speed}
@@ -162,127 +152,98 @@ const Visualizer: React.FC = () => {
                   />
                 </div>
 
-                {/* Center: canvas */}
+                {/* ── Right area (flex-1) ── */}
                 <div className="flex-1 flex flex-col gap-4 min-w-0">
-                  <Card className="flex-1 flex flex-col p-4 min-h-[300px]">
-                    {algorithm ? (
-                      <>
-                        {/* Algorithm title + badges */}
-                        <div className="flex items-center gap-2 flex-wrap mb-4">
-                          <h2 className="text-base font-semibold text-white">{algorithm.name}</h2>
-                          <Badge variant={algorithm.category}>{algorithm.category}</Badge>
-                          <Badge variant={algorithm.difficulty.toLowerCase() as 'easy' | 'medium' | 'hard'}>
-                            {algorithm.difficulty}
-                          </Badge>
-                        </div>
-                        <div className="flex-1 min-h-[260px]">
+
+                  {algorithm ? (
+                    <>
+                      {/* Algorithm name + badges + complexity */}
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <h2 className="text-base font-semibold text-text-primary">
+                          {algorithm.name}
+                        </h2>
+                        <Badge
+                          variant={algorithm.difficulty.toLowerCase() as 'easy' | 'medium' | 'hard'}
+                        >
+                          {algorithm.difficulty}
+                        </Badge>
+                        <Badge
+                          variant={algorithm.category as 'sorting' | 'searching' | 'graph' | 'dp'}
+                        >
+                          {algorithm.category === 'dp'
+                            ? 'Dynamic Prog.'
+                            : algorithm.category.charAt(0).toUpperCase() + algorithm.category.slice(1)}
+                        </Badge>
+                        <span className="text-xs font-mono text-text-muted ml-auto">
+                          T: {algorithm.timeComplexity} &nbsp;|&nbsp; S: {algorithm.spaceComplexity}
+                        </span>
+                      </div>
+
+                      {/* Visualizer canvas */}
+                      <Card variant="surface-2" className="p-4 min-h-[320px] flex flex-col">
+                        <div className="flex-1 min-h-[280px]">
                           <VisualizerCanvas
                             step={currentStepData}
                             category={algorithm.category}
                           />
                         </div>
-                      </>
-                    ) : (
-                      <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
-                        <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center">
-                          <Code className="w-7 h-7 text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="text-slate-300 font-medium">Select an algorithm to begin</p>
-                          <p className="text-slate-500 text-sm mt-1">
-                            Choose from the left panel to start the visualization
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </Card>
-                </div>
+                      </Card>
 
-                {/* Right sidebar: code + metadata */}
-                {algorithm && (
-                  <div className="w-full lg:w-80 flex flex-col gap-4 flex-shrink-0 overflow-y-auto">
-                    {/* Complexity badges */}
-                    <Card className="p-4 flex flex-col gap-3">
-                      <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                        Complexity
-                      </h2>
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-slate-400">Time</span>
-                          <Badge variant="medium">{algorithm.timeComplexity}</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-slate-400">Space</span>
-                          <Badge variant="graph">{algorithm.spaceComplexity}</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-slate-400">Step</span>
-                          <Badge variant="default">
-                            {steps.length > 0
-                              ? `${currentStep + 1} / ${steps.length}`
-                              : '— / —'}
-                          </Badge>
-                        </div>
+                      {/* Step explainer */}
+                      <StepExplainer step={currentStepData} />
+
+                      {/* Code block */}
+                      <CodeBlock
+                        code={algorithm.code}
+                        language="javascript"
+                        title={algorithm.name}
+                        highlightLine={currentStepData?.codeLine}
+                      />
+                    </>
+                  ) : (
+                    <Card variant="surface-2" className="flex-1 flex flex-col items-center justify-center min-h-[420px] gap-4 text-center">
+                      <div className="w-16 h-16 rounded-full flex items-center justify-center"
+                           style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.15)' }}>
+                        <Code className="w-7 h-7 text-accent-cyan" />
                       </div>
-                      {algorithm.description && (
-                        <p className="text-xs text-slate-500 leading-relaxed border-t border-white/5 pt-3 mt-1">
-                          {algorithm.description}
+                      <div>
+                        <p className="text-text-primary font-medium">Select an algorithm to begin</p>
+                        <p className="text-text-muted text-sm mt-1">
+                          Choose from the left panel to start the visualization
                         </p>
-                      )}
-                    </Card>
-
-                    {/* Code block */}
-                    <Card className="p-0 overflow-hidden flex flex-col">
-                      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
-                        <Code className="w-4 h-4 text-slate-400" />
-                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                          Code
-                        </span>
-                      </div>
-                      <div className="overflow-auto max-h-[420px]">
-                        <CodeBlock
-                          code={algorithm.code}
-                          language="javascript"
-                          highlightLine={currentStepData?.codeLine}
-                        />
                       </div>
                     </Card>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-
-              {/* Bottom: step explainer */}
-              <StepExplainer step={currentStepData} />
             </motion.div>
           )}
 
-          {/* ─── AI CUSTOM TAB ─── */}
+          {/* ─────────────────── AI CUSTOM TAB ─────────────────── */}
           {activeTab === 'ai' && (
-            <motion.div
-              key="ai"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-            >
+            <motion.div key="ai" {...tabAnim}>
               {isAuthenticated ? (
                 <AICustomMode />
               ) : (
                 <div className="flex items-center justify-center py-24">
-                  <Card className="flex flex-col items-center gap-5 max-w-sm w-full text-center">
-                    <div className="w-14 h-14 rounded-full bg-slate-700/50 flex items-center justify-center">
-                      <Lock className="w-6 h-6 text-slate-400" />
+                  <Card variant="surface-1" className="flex flex-col items-center gap-5 max-w-sm w-full text-center p-8">
+                    <div className="w-14 h-14 rounded-full flex items-center justify-center"
+                         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <Lock className="w-6 h-6 text-text-muted" />
                     </div>
                     <div>
-                      <h2 className="text-base font-semibold text-white mb-1">
-                        Sign in to use AI Custom mode
+                      <h2 className="text-base font-semibold text-text-primary mb-2">
+                        Sign in to access AI mode
                       </h2>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-text-secondary leading-relaxed">
                         Create an account or sign in to unlock AI-generated algorithm visualizations.
                       </p>
                     </div>
                     <Link
-                      to="/auth"
-                      className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
+                      to="/login"
+                      className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-semibold
+                                 bg-gradient-to-r from-accent-cyan to-accent-teal text-surface-0
+                                 hover:shadow-glow-cyan transition-all duration-200"
                     >
                       Sign In
                     </Link>
