@@ -1,9 +1,107 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Star, Loader } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import Button from '../components/UI/Button';
 import toast from 'react-hot-toast';
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+};
+
+const inputBase =
+  'w-full py-3 bg-surface-2 border border-white/10 rounded-lg text-text-primary placeholder-text-muted focus:border-accent-cyan focus:outline-none focus:ring-1 focus:ring-accent-cyan/40 transition-all duration-200 font-sans text-sm';
+
+// ─── Forgot-password panel ───────────────────────────────────────────────────
+
+interface ForgotPanelProps {
+  onBack: () => void;
+  resetPassword: (email: string) => Promise<void>;
+}
+
+const ForgotPanel: React.FC<ForgotPanelProps> = ({ onBack, resetPassword }) => {
+  const [resetEmail, setResetEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) { toast.error('Please enter your email address'); return; }
+    setIsLoading(true);
+    try {
+      await resetPassword(resetEmail);
+      toast.success('Password reset email sent! Check your inbox.');
+      onBack();
+      setResetEmail('');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to send reset email. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      className="max-w-md w-full"
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-accent-cyan shadow-glow-cyan mb-6" />
+        <h2 className="text-3xl font-bold text-text-primary mb-2">Reset password</h2>
+        <p className="text-text-secondary text-sm">Enter your email to receive a reset link</p>
+      </div>
+
+      {/* Card */}
+      <div className="surface-1 rounded-2xl p-8 shadow-elevated">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="resetEmail" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 font-mono">
+              Email address
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" />
+              <input
+                id="resetEmail"
+                type="email"
+                required
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                className={`${inputBase} pl-10 pr-4`}
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            loading={isLoading}
+            className="w-full justify-center"
+          >
+            {!isLoading && 'Send reset link'}
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-sm text-accent-cyan hover:text-accent-teal transition-colors font-medium"
+          >
+            Back to sign in
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ─── Main login component ────────────────────────────────────────────────────
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,8 +110,6 @@ const Login: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [isResetLoading, setIsResetLoading] = useState(false);
 
   const { signIn, resetPassword, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -27,10 +123,7 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error('Please fill in all fields');
-      return;
-    }
+    if (!email || !password) { toast.error('Please fill in all fields'); return; }
 
     setIsLoading(true);
     try {
@@ -38,7 +131,6 @@ const Login: React.FC = () => {
       toast.success('Welcome back!');
       navigate(searchParams.get('redirect') || '/');
     } catch (error: any) {
-      console.error('Login error:', error);
       const msg = error?.message || '';
       if (msg.includes('Invalid login credentials')) {
         toast.error('Invalid email or password');
@@ -52,217 +144,117 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!resetEmail) {
-      toast.error('Please enter your email address');
-      return;
-    }
-
-    setIsResetLoading(true);
-    try {
-      await resetPassword(resetEmail);
-      toast.success('Password reset email sent! Check your inbox.');
-      setShowForgotPassword(false);
-      setResetEmail('');
-    } catch (error: any) {
-      console.error('Reset password error:', error);
-      toast.error(error?.message || 'Failed to send reset email. Please try again.');
-    } finally {
-      setIsResetLoading(false);
-    }
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 40 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
-  };
-
-  const inputClass =
-    'w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all';
-
   if (showForgotPassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="max-w-md w-full"
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Icon + headings */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center p-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mb-6 shadow-lg">
-              <Star className="w-6 h-6 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-white mb-2">Reset Password</h2>
-            <p className="text-slate-400">Enter your email to receive a reset link</p>
-          </div>
-
-          <div className="glass rounded-2xl p-8 shadow-xl">
-            <form onSubmit={handleForgotPassword} className="space-y-6">
-              <div>
-                <label htmlFor="resetEmail" className="block text-sm font-medium text-slate-300 mb-2">
-                  Email address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                  <input
-                    id="resetEmail"
-                    type="email"
-                    required
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    className={inputClass}
-                    placeholder="Enter your email"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isResetLoading}
-                className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-green-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              >
-                {isResetLoading ? (
-                  <>
-                    <Loader className="w-5 h-5 mr-2 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  'Send Reset Link'
-                )}
-              </button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <button
-                onClick={() => setShowForgotPassword(false)}
-                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
-              >
-                Back to Login
-              </button>
-            </div>
-          </div>
-        </motion.div>
+      <div className="min-h-screen flex items-center justify-center py-12 px-4">
+        <ForgotPanel onBack={() => setShowForgotPassword(false)} resetPassword={resetPassword} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4">
       <motion.div
         className="max-w-md w-full"
         variants={cardVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Icon + headings */}
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center p-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mb-6 shadow-lg">
-            <Star className="w-6 h-6 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-white mb-2">Welcome back!</h2>
-          <p className="text-slate-400">Sign in to your account</p>
+          <div className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-accent-cyan shadow-glow-cyan mb-6" />
+          <h2 className="text-3xl font-bold text-text-primary mb-2">Welcome back</h2>
+          <p className="text-text-secondary text-sm">Sign in to continue</p>
         </div>
 
-        <div className="glass rounded-2xl p-8 shadow-xl">
+        {/* Card */}
+        <div className="surface-1 rounded-2xl p-8 shadow-elevated">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="email" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 font-mono">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" />
                 <input
                   id="email"
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={inputClass}
-                  placeholder="Enter your email"
+                  className={`${inputBase} pl-10 pr-4`}
+                  placeholder="you@example.com"
                 />
               </div>
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="password" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 font-mono">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                  className={`${inputBase} pl-10 pr-11`}
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
             {/* Remember me + Forgot password */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   id="remember-me"
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-slate-600 rounded bg-slate-800"
+                  className="h-3.5 w-3.5 accent-accent-cyan bg-surface-2 border-white/10 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-300">
-                  Remember me
-                </label>
-              </div>
+                <span className="text-xs text-text-secondary">Remember me</span>
+              </label>
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                className="text-xs text-accent-cyan hover:text-accent-teal transition-colors font-medium"
               >
                 Forgot password?
               </button>
             </div>
 
-            {/* Sign in button */}
-            <button
+            {/* Sign in */}
+            <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-green-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              variant="primary"
+              size="md"
+              loading={isLoading}
+              className="w-full justify-center"
             >
-              {isLoading ? (
-                <>
-                  <Loader className="w-5 h-5 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign in'
-              )}
-            </button>
+              {!isLoading && 'Sign in'}
+            </Button>
           </form>
 
           {/* Sign up link */}
           <div className="mt-6 text-center">
-            <p className="text-slate-400">
+            <p className="text-text-muted text-sm">
               Don't have an account?{' '}
-              <Link to="/signup" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-                Sign up here
+              <Link to="/signup" className="text-accent-cyan hover:text-accent-teal font-medium transition-colors">
+                Sign up
               </Link>
             </p>
           </div>

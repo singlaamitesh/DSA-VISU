@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Eye, EyeOff, Star, Loader } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import Button from '../components/UI/Button';
 import toast from 'react-hot-toast';
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+};
+
+const inputBase =
+  'w-full py-3 bg-surface-2 border border-white/10 rounded-lg text-text-primary placeholder-text-muted focus:border-accent-cyan focus:outline-none focus:ring-1 focus:ring-accent-cyan/40 transition-all duration-200 font-sans text-sm';
 
 const Signup: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -31,26 +40,11 @@ const Signup: React.FC = () => {
   };
 
   const validateForm = (): boolean => {
-    if (!formData.name.trim()) {
-      toast.error('Please enter your full name');
-      return false;
-    }
-    if (!formData.email) {
-      toast.error('Please enter your email');
-      return false;
-    }
-    if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return false;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
-      return false;
-    }
-    if (!agreedToTerms) {
-      toast.error('Please agree to the Terms of Service');
-      return false;
-    }
+    if (!formData.name.trim()) { toast.error('Please enter your full name'); return false; }
+    if (!formData.email) { toast.error('Please enter your email'); return false; }
+    if (formData.password.length < 6) { toast.error('Password must be at least 6 characters'); return false; }
+    if (formData.password !== formData.confirmPassword) { toast.error('Passwords do not match'); return false; }
+    if (!agreedToTerms) { toast.error('Please agree to the Terms of Service'); return false; }
     return true;
   };
 
@@ -61,10 +55,9 @@ const Signup: React.FC = () => {
     setIsLoading(true);
     try {
       await signUp(formData.email, formData.password, formData.name);
-      toast.success('Account created! Welcome aboard.');
+      toast.success('Account created! Check your email to confirm.');
       navigate('/login');
     } catch (error: any) {
-      console.error('Signup error:', error);
       const msg = error?.message || '';
       if (msg.includes('already registered')) {
         toast.error('An account with this email already exists');
@@ -76,44 +69,32 @@ const Signup: React.FC = () => {
     }
   };
 
-  const cardVariants = {
-    hidden: { opacity: 0, y: 40 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
-  };
-
-  const inputClass =
-    'w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all';
-
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4">
       <motion.div
         className="max-w-md w-full"
         variants={cardVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Icon + headings */}
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center p-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-full mb-6 shadow-lg">
-            <Star className="w-6 h-6 text-white" />
-          </div>
-          <h2 className="text-3xl font-bold text-white mb-2">Create your account</h2>
-          <p className="text-slate-400">Join the Algorhythm community</p>
+          <div className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-accent-cyan shadow-glow-cyan mb-6" />
+          <h2 className="text-3xl font-bold text-text-primary mb-2">Create account</h2>
+          <p className="text-text-secondary text-sm">Join Algorhythm</p>
         </div>
 
-        <div className="glass rounded-2xl p-8 shadow-xl">
+        {/* Card */}
+        <div className="surface-1 rounded-2xl p-8 shadow-elevated">
           <form onSubmit={handleSubmit} className="space-y-5">
+
             {/* Full name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="name" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 font-mono">
                 Full name
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" />
                 <input
                   id="name"
                   name="name"
@@ -121,19 +102,19 @@ const Signup: React.FC = () => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className={inputClass}
-                  placeholder="Enter your full name"
+                  className={`${inputBase} pl-10 pr-4`}
+                  placeholder="Your full name"
                 />
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="email" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 font-mono">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" />
                 <input
                   id="email"
                   name="email"
@@ -141,19 +122,19 @@ const Signup: React.FC = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className={inputClass}
-                  placeholder="Enter your email address"
+                  className={`${inputBase} pl-10 pr-4`}
+                  placeholder="you@example.com"
                 />
               </div>
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="password" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 font-mono">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" />
                 <input
                   id="password"
                   name="password"
@@ -161,26 +142,27 @@ const Signup: React.FC = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                  placeholder="Create a strong password (min 6 chars)"
+                  className={`${inputBase} pl-10 pr-11`}
+                  placeholder="Min. 6 characters"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
             {/* Confirm password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="confirmPassword" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 font-mono">
                 Confirm password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" />
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -188,63 +170,59 @@ const Signup: React.FC = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                  placeholder="Confirm your password"
+                  className={`${inputBase} pl-10 pr-11`}
+                  placeholder="Repeat your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
             {/* Terms checkbox */}
-            <div className="flex items-start">
+            <label className="flex items-start gap-3 cursor-pointer select-none">
               <input
                 id="terms"
                 type="checkbox"
                 checked={agreedToTerms}
                 onChange={(e) => setAgreedToTerms(e.target.checked)}
-                className="h-4 w-4 mt-0.5 text-blue-500 focus:ring-blue-500 border-slate-600 rounded bg-slate-800"
+                className="h-3.5 w-3.5 mt-0.5 accent-accent-cyan bg-surface-2 border-white/10 rounded flex-shrink-0"
               />
-              <label htmlFor="terms" className="ml-2 block text-sm text-slate-300">
+              <span className="text-xs text-text-secondary leading-snug">
                 I agree to the{' '}
-                <Link to="#" className="text-blue-400 hover:text-blue-300 transition-colors">
+                <Link to="#" className="text-accent-cyan hover:text-accent-teal transition-colors">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link to="#" className="text-blue-400 hover:text-blue-300 transition-colors">
+                <Link to="#" className="text-accent-cyan hover:text-accent-teal transition-colors">
                   Privacy Policy
                 </Link>
-              </label>
-            </div>
+              </span>
+            </label>
 
-            {/* Create account button */}
-            <button
+            {/* Create account */}
+            <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-blue-500 text-white font-medium rounded-lg hover:from-green-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              variant="primary"
+              size="md"
+              loading={isLoading}
+              className="w-full justify-center"
             >
-              {isLoading ? (
-                <>
-                  <Loader className="w-5 h-5 mr-2 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                'Create account'
-              )}
-            </button>
+              {!isLoading && 'Create account'}
+            </Button>
           </form>
 
           {/* Sign in link */}
           <div className="mt-6 text-center">
-            <p className="text-slate-400">
+            <p className="text-text-muted text-sm">
               Already have an account?{' '}
-              <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-                Sign in here
+              <Link to="/login" className="text-accent-cyan hover:text-accent-teal font-medium transition-colors">
+                Sign in
               </Link>
             </p>
           </div>
