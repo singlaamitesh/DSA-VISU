@@ -4,39 +4,129 @@
 
 @layer base {
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
   body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: #0f172a;
-    color: #e2e8f0;
-    line-height: 1.6;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: #0a0e1a;
+    color: #e8edf5;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
     overflow-x: hidden;
   }
+
   #root { min-height: 100vh; }
+
+  ::selection {
+    background: rgba(6, 182, 212, 0.3);
+    color: #e8edf5;
+  }
 }
 
 @layer components {
-  .glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
+  /* Layered surface system — replaces glass everywhere */
+  .surface-1 {
+    background: #0f1425;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+  }
+
+  .surface-2 {
+    background: #151b2e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+  }
+
+  .surface-3 {
+    background: #1c2438;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
   }
-  .glass-hover:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
+
+  /* Glass — use sparingly (modals, overlays only) */
+  .glass {
+    background: rgba(15, 20, 37, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
+
+  /* Gradient text — cyan to teal */
   .gradient-text {
-    background: linear-gradient(135deg, #60a5fa, #34d399);
+    background: linear-gradient(135deg, #06b6d4, #14b8a6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* Accent gradient text — amber to rose */
+  .gradient-text-warm {
+    background: linear-gradient(135deg, #f59e0b, #f43f5e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Neon glow border effect */
+  .glow-border {
+    position: relative;
+  }
+  .glow-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.3), transparent, rgba(20, 184, 166, 0.3));
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .glow-border:hover::before {
+    opacity: 1;
+  }
+
+  /* Terminal-style code container */
+  .terminal {
+    background: #0a0e1a;
+    border: 1px solid rgba(6, 182, 212, 0.2);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .terminal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
 }
 
 @layer utilities {
-  .scrollbar-thin::-webkit-scrollbar { width: 6px; }
-  .scrollbar-thin::-webkit-scrollbar-track { background: #1e293b; }
-  .scrollbar-thin::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #64748b; }
+  .scrollbar-thin::-webkit-scrollbar { width: 5px; height: 5px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(6, 182, 212, 0.2);
+    border-radius: 3px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(6, 182, 212, 0.4);
+  }
+
+  /* Noise texture overlay */
+  .noise::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    border-radius: inherit;
+  }
 }

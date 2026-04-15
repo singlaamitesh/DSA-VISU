@@ -3,24 +3,32 @@ import { cn } from '../../utils/cn';
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'easy' | 'medium' | 'hard' | 'sorting' | 'searching' | 'graph' | 'dp' | 'default';
+  variant?: 'easy' | 'medium' | 'hard' | 'sorting' | 'searching' | 'graph' | 'dp' | 'default' | 'cyan' | 'amber';
+  size?: 'sm' | 'md';
   className?: string;
 }
 
 const variantStyles: Record<string, string> = {
-  easy: 'bg-green-500/20 text-green-400 border-green-500/30',
-  medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  hard: 'bg-red-500/20 text-red-400 border-red-500/30',
-  sorting: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  searching: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  graph: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  dp: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  default: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+  easy: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  hard: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  sorting: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
+  searching: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+  graph: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
+  dp: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  default: 'bg-white/5 text-text-secondary border-white/10',
+  cyan: 'bg-accent-cyan/10 text-accent-cyan border-accent-cyan/20',
+  amber: 'bg-accent-amber/10 text-accent-amber border-accent-amber/20',
 };
 
-const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className }) => {
+const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', size = 'sm', className }) => {
   return (
-    <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border', variantStyles[variant], className)}>
+    <span className={cn(
+      'inline-flex items-center rounded-full border font-mono font-medium tracking-wide uppercase',
+      size === 'sm' ? 'px-2.5 py-1 text-[10px]' : 'px-3 py-1.5 text-xs',
+      variantStyles[variant],
+      className
+    )}>
       {children}
     </span>
   );
