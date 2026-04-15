@@ -20,6 +20,6 @@ export const VISUALIZER_CONFIG = {
 } as const;
 
 export const AI_CONFIG = {
-  generateEndpoint: '/.netlify/functions/generate-visualization',
+  generateEndpoint: '/api/generate-visualization',
   maxGenerationsPerDay: 10,
 } as const;

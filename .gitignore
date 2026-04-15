@@ -116,3 +116,12 @@ n8n-*.json
 *.tmp
 # Superpowers brainstorming
 .superpowers/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Vercel
+.vercel/
