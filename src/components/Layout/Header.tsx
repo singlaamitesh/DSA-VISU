@@ -21,7 +21,7 @@ const Header: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const getUserDisplayName = () =>
-    user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+    user?.name || user?.email?.split('@')[0] || 'User';
 
   const getInitial = () => getUserDisplayName().charAt(0).toUpperCase();
 

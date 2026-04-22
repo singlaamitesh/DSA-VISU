@@ -1,15 +1,19 @@
 import { AI_CONFIG } from '../config/constants';
-import { supabase } from './supabase';
+import { pb } from './pocketbase';
 
-export const generateVisualization = async (prompt: string, language: string = 'javascript'): Promise<string> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Authentication required');
+export const generateVisualization = async (
+  prompt: string,
+  language: string = 'javascript'
+): Promise<string> => {
+  if (!pb.authStore.isValid || !pb.authStore.token) {
+    throw new Error('Authentication required');
+  }
 
   const response = await fetch(AI_CONFIG.generateEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session.access_token}`,
+      'Authorization': `Bearer ${pb.authStore.token}`,
     },
     body: JSON.stringify({ prompt, language }),
   });

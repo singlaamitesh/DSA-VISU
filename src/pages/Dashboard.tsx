@@ -59,7 +59,7 @@ const Dashboard: React.FC = () => {
   }, [user]);
 
   const displayName =
-    user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+    user?.name || user?.email?.split('@')[0] || 'User';
 
   const thisMonthCount = getThisMonthCount(generations);
   const latestDate =

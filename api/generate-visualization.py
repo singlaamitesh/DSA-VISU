@@ -6,6 +6,8 @@ Uses LangGraph + LangChain to call OpenRouter (Gemini 2.5 Flash by default)
 import json
 import os
 import re
+import urllib.request
+import urllib.error
 from http.server import BaseHTTPRequestHandler
 from typing import Optional
 
@@ -20,6 +22,35 @@ from typing_extensions import TypedDict
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "google/gemini-2.5-flash")
 MAX_TOKENS = int(os.environ.get("MAX_TOKENS", "16000"))
+POCKETBASE_URL = os.environ.get("POCKETBASE_URL", "")
+
+
+def verify_pocketbase_token(token: str) -> Optional[dict]:
+    """
+    Verify a PocketBase auth token by calling auth-refresh.
+    Returns the user record if valid, None otherwise.
+    Graceful fallback: if POCKETBASE_URL is not set, skip auth (dev mode).
+    """
+    if not POCKETBASE_URL:
+        return {"id": "anonymous"}  # dev mode — auth disabled
+    if not token:
+        return None
+    try:
+        req = urllib.request.Request(
+            f"{POCKETBASE_URL.rstrip('/')}/api/collections/users/auth-refresh",
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            if resp.status == 200:
+                data = json.loads(resp.read())
+                return data.get("record")
+    except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError):
+        return None
+    return None
 
 SYSTEM_PROMPT = """# Interactive Algorithm Visualizer Generator
 
@@ -297,6 +328,14 @@ class handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
+            # Verify auth token (PocketBase)
+            auth_header = self.headers.get("Authorization", "")
+            token = auth_header[7:] if auth_header.startswith("Bearer ") else ""
+            user = verify_pocketbase_token(token)
+            if user is None:
+                self._send_json(401, {"error": "Authentication required"})
+                return
+
             # Read request body
             content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length)

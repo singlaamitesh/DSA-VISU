@@ -5,9 +5,8 @@ export const APP_CONFIG = {
   repository: 'https://github.com/singlaamitesh/algorhythm',
 } as const;
 
-export const SUPABASE_CONFIG = {
-  url: import.meta.env.VITE_SUPABASE_URL,
-  anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+export const POCKETBASE_CONFIG = {
+  url: import.meta.env.VITE_POCKETBASE_URL || 'http://127.0.0.1:8090',
 } as const;
 
 export const VISUALIZER_CONFIG = {

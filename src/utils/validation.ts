@@ -1,17 +1,6 @@
 export const validateEnvironment = () => {
-  const required = [
-    'VITE_SUPABASE_URL',
-    'VITE_SUPABASE_ANON_KEY',
-  ];
-
-  const missing = required.filter(
-    (key) => !import.meta.env[key]
-  );
-
-  if (missing.length > 0) {
-    throw new Error(
-      `Missing required environment variables: ${missing.join(', ')}. Check your .env file.`
-    );
+  if (!import.meta.env.VITE_POCKETBASE_URL) {
+    console.warn('VITE_POCKETBASE_URL not set, using default http://127.0.0.1:8090');
   }
 };
 
@@ -20,8 +9,8 @@ export const validateEmail = (email: string): boolean => {
 };
 
 export const validatePassword = (password: string): { valid: boolean; error?: string } => {
-  if (password.length < 6) {
-    return { valid: false, error: 'Password must be at least 6 characters' };
+  if (password.length < 8) {
+    return { valid: false, error: 'Password must be at least 8 characters' };
   }
   return { valid: true };
 };

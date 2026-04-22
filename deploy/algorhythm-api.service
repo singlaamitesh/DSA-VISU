@@ -1,0 +1,17 @@
+[Unit]
+Description=Algorhythm Python API (FastAPI + LangGraph)
+After=network.target pocketbase.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/algorhythm-api
+EnvironmentFile=/opt/algorhythm-api/.env
+ExecStart=/opt/algorhythm-api/venv/bin/python -m uvicorn api.server:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/var/log/algorhythm-api.log
+StandardError=append:/var/log/algorhythm-api.log
+
+[Install]
+WantedBy=multi-user.target

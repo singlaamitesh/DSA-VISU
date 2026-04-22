@@ -42,7 +42,7 @@ const Signup: React.FC = () => {
   const validateForm = (): boolean => {
     if (!formData.name.trim()) { toast.error('Please enter your full name'); return false; }
     if (!formData.email) { toast.error('Please enter your email'); return false; }
-    if (formData.password.length < 6) { toast.error('Password must be at least 6 characters'); return false; }
+    if (formData.password.length < 8) { toast.error('Password must be at least 8 characters'); return false; }
     if (formData.password !== formData.confirmPassword) { toast.error('Passwords do not match'); return false; }
     if (!agreedToTerms) { toast.error('Please agree to the Terms of Service'); return false; }
     return true;
@@ -143,7 +143,7 @@ const Signup: React.FC = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className={`${inputBase} pl-10 pr-11`}
-                  placeholder="Min. 6 characters"
+                  placeholder="Min. 8 characters"
                 />
                 <button
                   type="button"

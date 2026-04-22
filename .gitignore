@@ -125,3 +125,7 @@ venv/
 
 # Vercel
 .vercel/
+
+# Never commit
+.claude/
+docs/superpowers/
