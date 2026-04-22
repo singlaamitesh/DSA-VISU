@@ -129,3 +129,4 @@ venv/
 # Never commit
 .claude/
 docs/superpowers/
+.pocketbase/
