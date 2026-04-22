@@ -94,21 +94,87 @@ Use this structure exactly:
     - `<aside class="info-area">` with three `<div class="panel">` blocks: Current Step (id: explanation), Pseudocode (id: pseudocode), State (id: state)
 - `<script>` tag at end of body with ALL JavaScript
 
-## CSS REQUIREMENTS (DARK THEME MATCHING PARENT APP)
+## CSS REQUIREMENTS — STRICT DARK THEME (NON-NEGOTIABLE)
 
-Use these exact colors:
-- Body background: `#0a0e1a`
-- Surface backgrounds: `#0f1425`, `#151b2e`
-- Text primary: `#e8edf5`, secondary: `#8896b0`, muted: `#556480`
-- Accent: `#06b6d4` (cyan) and `#14b8a6` (teal)
-- Active pseudocode line: `background: rgba(6, 182, 212, 0.2); color: #06b6d4; border-left: 3px solid #06b6d4;`
-- Font: `'JetBrains Mono', 'Courier New', monospace` for code; `'Plus Jakarta Sans', system-ui, sans-serif` for body
-- All panels: `border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px;`
-- Buttons: `background: #06b6d4; color: #0a0e1a; padding: 10px 18px; border: 0; border-radius: 8px; font-weight: 600; cursor: pointer;` with hover scale and shadow
-- Layout: visualizer is `display: flex; gap: 20px;` with `.animation-area { flex: 2; }` and `.info-area { flex: 1; display: flex; flex-direction: column; gap: 12px; }`
+**The output MUST use a DARK theme. LIGHT backgrounds are FORBIDDEN.**
+
+### FORBIDDEN
+- `background: white`, `#fff`, `#ffffff`, `#f0f0f0`, `#fafafa`, `#f5f5f5`, or any light gray
+- Pastel colors on light backgrounds (pink, baby blue, mint)
+- Default browser colors (the page MUST override html/body/canvas backgrounds)
+- Light-mode color schemes of any kind
+
+### REQUIRED COLORS (use these exact hex values)
+
+```css
+html, body {
+  background: #0a0e1a;  /* deep navy — the ENTIRE page is dark */
+  color: #e8edf5;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+canvas {
+  background: #0f1425;  /* canvas is ALWAYS dark */
+  border-radius: 12px;
+}
+
+header, .solution, .panel, .animation-area, .info-area, main {
+  background: #0f1425;
+  color: #e8edf5;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+}
+
+/* Secondary surface for nested panels */
+.panel > *, pre, code, .pseudocode {
+  background: #151b2e;
+  color: #e8edf5;
+}
+
+h1, h2, h3 { color: #e8edf5; }
+p, .meta { color: #8896b0; }
+
+/* Accents — use sparingly for interactive elements */
+button, .btn {
+  background: #06b6d4;
+  color: #0a0e1a;
+  font-weight: 600;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+button:hover { background: #14b8a6; transform: translateY(-1px); box-shadow: 0 0 20px rgba(6,182,212,0.3); }
+
+.line.current {
+  background: rgba(6, 182, 212, 0.15);
+  color: #06b6d4;
+  border-left: 3px solid #06b6d4;
+  padding-left: 8px;
+}
+```
+
+### CANVAS DRAWING COLORS (when drawing bars, nodes, cells, etc.)
+
+- Background fill: `#0f1425` (draw ctx.fillRect canvas bg first)
+- Default element: `#334155` (slate) or `#1c2438`
+- Active/comparing element: `#f59e0b` (amber) — HIGH VISIBILITY
+- Swap/moving element: `#f43f5e` (rose)
+- Visited/done element: `#14b8a6` (teal)
+- Current pivot: `#06b6d4` (cyan)
+- Text on canvas: `#e8edf5`
+
+NEVER draw black on white or any pastel combo. High contrast accent colors on dark navy is the ONLY allowed palette.
+
+### Layout
+- `main.visualizer { display: flex; gap: 20px; padding: 20px; background: #0a0e1a; }`
+- `.animation-area { flex: 2; }` `.info-area { flex: 1; display: flex; flex-direction: column; gap: 12px; }`
 - Mobile (`@media (max-width: 768px)`): stack vertically, canvas full width
 
-Canvas drawings MUST use high contrast — accent colors on dark background.
+### Fonts
+- Code: `'JetBrains Mono', 'Courier New', monospace`
+- Body: `'Plus Jakarta Sans', system-ui, sans-serif`
 
 ## JAVASCRIPT ARCHITECTURE (REQUIRED PATTERN)
 
@@ -211,7 +277,9 @@ showStep(0);
 - Starts with <!DOCTYPE html> and ends with </html>
 - All CSS inline in <style> (no external stylesheets)
 - All JS inline in <script> (no external scripts)
-- Dark palette (cyan/teal on deep navy)
+- DARK palette everywhere — html body, canvas, all panels use #0a0e1a / #0f1425 / #151b2e (NEVER white/light gray)
+- Canvas background explicitly filled with #0f1425 at start of every drawCanvas call
+- Accent colors (cyan/teal/amber/rose) used only for interactive or active elements
 - steps array fully populated with real data (not empty)
 - Play animates, Step advances one frame, Reset goes to start
 - Speed slider works live

@@ -351,7 +351,7 @@ const AICustomMode: React.FC = () => {
             ref={iframeRef}
             srcDoc={displayHtml}
             sandbox="allow-scripts"
-            className="w-full rounded-lg border border-white/10 bg-white"
+            className="w-full rounded-lg border border-white/10 bg-surface-0"
             style={{ height: '360px' }}
             title="Visualization Preview"
           />
