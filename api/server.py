@@ -1,34 +1,46 @@
 """
-Algorhythm FastAPI server for DigitalOcean deployment.
-Reuses the LangGraph pipeline from generate_visualization.py.
+Algorhythm FastAPI server.
+Self-contained: LangGraph + LangChain pipeline that calls OpenRouter to generate
+interactive algorithm visualizations as HTML.
+
+Deployment: runs on DigitalOcean droplet behind Nginx reverse proxy.
+Auth: verifies PocketBase session tokens.
 """
 
-import os
-import urllib.request
-import urllib.error
 import json
+import os
+import re
+import urllib.error
+import urllib.request
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
+from typing_extensions import TypedDict
 
-# Import the graph from the serverless module
-import sys
-import pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from importlib import import_module
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage, BaseMessage
+from langgraph.graph import StateGraph, START, END
 
-gv = import_module("generate-visualization")
-visualization_graph = gv.visualization_graph
+
+# ── Config ───────────────────────────────────────────────────────────
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "google/gemini-2.5-flash")
+MAX_TOKENS = int(os.environ.get("MAX_TOKENS", "16000"))
 POCKETBASE_URL = os.environ.get("POCKETBASE_URL", "")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
 
+# ── Auth ─────────────────────────────────────────────────────────────
+
 def verify_pocketbase_token(token: str) -> Optional[dict]:
+    """
+    Verify a PocketBase auth token via auth-refresh.
+    Returns the user record on success, None on failure.
+    Dev mode: if POCKETBASE_URL is unset, returns an anonymous user (skip auth).
+    """
     if not POCKETBASE_URL:
         return {"id": "anonymous"}
     if not token:
@@ -50,6 +62,100 @@ def verify_pocketbase_token(token: str) -> Optional[dict]:
         return None
     return None
 
+
+# ── System Prompt ────────────────────────────────────────────────────
+# Loaded from a sibling file so the logic stays readable.
+
+_PROMPT_PATH = os.path.join(os.path.dirname(__file__), "prompt.txt")
+with open(_PROMPT_PATH, "r", encoding="utf-8") as _f:
+    SYSTEM_PROMPT = _f.read()
+
+
+# ── LangGraph Pipeline ───────────────────────────────────────────────
+
+class GraphState(TypedDict):
+    prompt: str
+    language: str
+    messages: list[BaseMessage]
+    html: str
+    error: Optional[str]
+
+
+def build_messages(state: GraphState) -> dict:
+    language = state.get("language", "javascript")
+    user_message = (
+        f"Create a single HTML file to visualize: **{state['prompt']}**\n"
+        f"Solution should be in this language: {language}"
+    )
+    return {
+        "messages": [
+            SystemMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=user_message),
+        ]
+    }
+
+
+def call_llm(state: GraphState) -> dict:
+    llm = ChatOpenAI(
+        model=OPENROUTER_MODEL,
+        api_key=OPENROUTER_API_KEY,
+        base_url="https://openrouter.ai/api/v1",
+        max_tokens=MAX_TOKENS,
+        default_headers={
+            "HTTP-Referer": "https://algorhythm.app",
+            "X-Title": "Algorhythm Visualizer",
+        },
+    )
+    try:
+        response = llm.invoke(state["messages"])
+        html = extract_html(str(response.content))
+        return {"html": html}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def extract_html(text: str) -> str:
+    """Extract HTML from LLM output — handles raw HTML, markdown fences, or JSON wrapper."""
+    text = text.strip()
+
+    # JSON wrapper: { "html_code": "..." }
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, dict) and "html_code" in parsed:
+            return parsed["html_code"].strip()
+    except (json.JSONDecodeError, TypeError):
+        pass
+
+    # JSON inside markdown fences
+    json_match = re.search(r"```(?:json)?\s*\n?(\{.*?\})\s*\n?```", text, re.DOTALL)
+    if json_match:
+        try:
+            parsed = json.loads(json_match.group(1))
+            if isinstance(parsed, dict) and "html_code" in parsed:
+                return parsed["html_code"].strip()
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    # Strip html markdown fences
+    text = re.sub(r"^```(?:html)?\s*\n?", "", text)
+    text = re.sub(r"\n?```\s*$", "", text)
+    return text.strip()
+
+
+def build_graph():
+    graph = StateGraph(GraphState)
+    graph.add_node("build_messages", build_messages)
+    graph.add_node("call_llm", call_llm)
+    graph.add_edge(START, "build_messages")
+    graph.add_edge("build_messages", "call_llm")
+    graph.add_edge("call_llm", END)
+    return graph.compile()
+
+
+visualization_graph = build_graph()
+
+
+# ── FastAPI App ──────────────────────────────────────────────────────
 
 app = FastAPI(title="Algorhythm API")
 

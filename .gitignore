@@ -114,19 +114,11 @@ n8n-*.json
 *.bak
 *.swp
 *.tmp
-# Superpowers brainstorming
-.superpowers/
-
 # Python
 __pycache__/
 *.pyc
 venv/
 .venv/
 
-# Vercel
-.vercel/
-
-# Never commit
-.claude/
-docs/superpowers/
+# PocketBase local dev data
 .pocketbase/
