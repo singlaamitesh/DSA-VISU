@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, Download, Trash2 } from 'lucide-react';
+import { Download, Trash2, ExternalLink } from 'lucide-react';
 import Card from '../components/UI/Card';
 import Badge from '../components/UI/Badge';
 import Button from '../components/UI/Button';
@@ -79,8 +79,16 @@ const Dashboard: React.FC = () => {
   };
 
   const handlePreview = (html: string) => {
-    setPreviewHtml(html);
-    setPreviewOpen(true);
+    // Open in a fresh tab for full interactivity
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank', 'noopener,noreferrer');
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    if (!win) {
+      // Pop-up blocked — fall back to in-page modal
+      setPreviewHtml(html);
+      setPreviewOpen(true);
+    }
   };
 
   const handleDownload = (html: string, index: number) => {
@@ -232,11 +240,11 @@ const Dashboard: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          title="Preview"
+                          title="Open in new tab"
                           onClick={() => handlePreview(gen.html)}
                           className="px-2"
                         >
-                          <Eye className="w-4 h-4" />
+                          <ExternalLink className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
