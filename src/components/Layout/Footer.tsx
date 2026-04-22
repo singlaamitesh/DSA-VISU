@@ -1,5 +1,4 @@
 import React from 'react';
-import { Github } from 'lucide-react';
 import { APP_CONFIG } from '../../config/constants';
 
 const Footer: React.FC = () => {
@@ -11,15 +10,7 @@ const Footer: React.FC = () => {
           <span className="hidden sm:inline text-text-muted text-sm">—</span>
           <span className="text-text-muted text-sm">{APP_CONFIG.description}</span>
         </div>
-        <a
-          href={APP_CONFIG.repository}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 text-text-muted hover:text-text-secondary transition-colors duration-200 text-sm"
-        >
-          <Github className="w-4 h-4 shrink-0" />
-          <span>GitHub</span>
-        </a>
+        <span className="text-text-muted text-xs font-mono">v{APP_CONFIG.version}</span>
       </div>
     </footer>
   );

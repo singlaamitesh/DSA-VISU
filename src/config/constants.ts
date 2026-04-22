@@ -2,7 +2,6 @@ export const APP_CONFIG = {
   name: 'Algorhythm',
   description: 'Interactive Algorithm Visualizer',
   version: '2.0.0',
-  repository: 'https://github.com/singlaamitesh/algorhythm',
 } as const;
 
 export const POCKETBASE_CONFIG = {
