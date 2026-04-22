@@ -17,7 +17,6 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => void;
-  resetPassword: (email: string) => Promise<void>;
   init: () => () => void;
 }
 
@@ -57,10 +56,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: () => {
     pb.authStore.clear();
     set({ user: null, token: '' });
-  },
-
-  resetPassword: async (email) => {
-    await pb.collection('users').requestPasswordReset(email);
   },
 
   init: () => {
