@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Download, Copy, Trash2, Eye, Loader2, Clock, Code2, ExternalLink } from 'lucide-react';
+import { Sparkles, Download, Copy, Trash2, Eye, Loader2, Clock, Code2, ExternalLink, Bell, BellOff } from 'lucide-react';
+import toast from 'react-hot-toast';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
 import { generateVisualization } from '../../lib/openrouter';
@@ -29,6 +30,22 @@ const LANGUAGES: Language[] = [
   { value: 'rust', label: 'Rust', icon: 'Rs' },
 ];
 
+// Rotating stage messages shown during generation
+const STAGES = [
+  { at: 0, label: 'Analyzing your algorithm…' },
+  { at: 5, label: 'Designing the layout…' },
+  { at: 12, label: 'Writing the code…' },
+  { at: 22, label: 'Adding animations…' },
+  { at: 35, label: 'Polishing the output…' },
+  { at: 50, label: 'Almost there…' },
+];
+
+const formatElapsed = (seconds: number): string => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
+
 const AICustomMode: React.FC = () => {
   const { user } = useAuth();
   const { generations, loading: historyLoading, loadHistory, saveGeneration, deleteGeneration } = useHistoryStore();
@@ -40,7 +57,13 @@ const AICustomMode: React.FC = () => {
   const [error, setError] = useState('');
   const [viewingHistory, setViewingHistory] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [stage, setStage] = useState(STAGES[0].label);
+  const [notifEnabled, setNotifEnabled] = useState(
+    typeof Notification !== 'undefined' && Notification.permission === 'granted'
+  );
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (user?.id) {
@@ -48,21 +71,88 @@ const AICustomMode: React.FC = () => {
     }
   }, [user?.id]);
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+    };
+  }, []);
+
+  const requestNotifPermission = async () => {
+    if (typeof Notification === 'undefined') {
+      toast.error('Your browser does not support notifications');
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      setNotifEnabled(true);
+      toast.success('Notifications already enabled');
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      toast.error('Enable notifications in your browser settings');
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      setNotifEnabled(true);
+      toast.success('Notifications enabled');
+    }
+  };
+
+  const sendBrowserNotification = (title: string, body: string) => {
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission !== 'granted') return;
+    if (document.visibilityState === 'visible') return; // only notify when tab is not focused
+    try {
+      new Notification(title, {
+        body,
+        icon: '/favicon.ico',
+        tag: 'algorhythm-gen',
+      });
+    } catch {
+      /* ignore */
+    }
+  };
+
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setGenerating(true);
     setError('');
     setHtml('');
     setViewingHistory(null);
+    setElapsed(0);
+    setStage(STAGES[0].label);
+
+    const startedAt = performance.now();
+    timerRef.current = window.setInterval(() => {
+      const secs = Math.floor((performance.now() - startedAt) / 1000);
+      setElapsed(secs);
+      // Update stage label based on elapsed time
+      const activeStage = [...STAGES].reverse().find((s) => secs >= s.at);
+      if (activeStage) setStage(activeStage.label);
+    }, 250);
+
     try {
       const result = await generateVisualization(prompt.trim(), language);
+      const finalSecs = Math.round((performance.now() - startedAt) / 1000);
       setHtml(result);
       if (user?.id) {
         await saveGeneration(user.id, prompt.trim(), result);
       }
+      toast.success(`Ready in ${formatElapsed(finalSecs)}`, { icon: '✨' });
+      sendBrowserNotification(
+        'Visualization ready',
+        `Your "${prompt.trim().slice(0, 60)}" visualization is ready (${formatElapsed(finalSecs)})`
+      );
     } catch (err: any) {
-      setError(err.message || 'Generation failed. Please try again.');
+      const msg = err.message || 'Generation failed. Please try again.';
+      setError(msg);
+      toast.error(msg);
     } finally {
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
       setGenerating(false);
     }
   };
@@ -160,6 +250,30 @@ const AICustomMode: React.FC = () => {
             </p>
           )}
 
+          {/* Progress card — shown only during generation */}
+          {generating && (
+            <div className="rounded-lg border border-accent-cyan/30 bg-accent-cyan/5 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 text-accent-cyan animate-spin" />
+                  <span className="text-sm font-medium text-text-primary">{stage}</span>
+                </div>
+                <span className="font-mono text-sm text-accent-cyan tabular-nums">
+                  {formatElapsed(elapsed)}
+                </span>
+              </div>
+              {/* Indeterminate progress bar */}
+              <div className="relative h-1 rounded-full bg-surface-3 overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-accent-cyan to-accent-teal rounded-full animate-[progress_1.5s_ease-in-out_infinite]"
+                  style={{ animationName: 'progress' }}
+                />
+              </div>
+              <p className="text-xs text-text-muted">
+                Typical generation takes 15–45 seconds. Leave this tab open — you'll get a notification when it's done.
+              </p>
+            </div>
+          )}
+
           <div className="flex items-center flex-wrap gap-3">
             <Button
               variant="primary"
@@ -168,7 +282,18 @@ const AICustomMode: React.FC = () => {
               loading={generating}
               icon={!generating && <Sparkles className="w-4 h-4" />}
             >
-              {generating ? 'Generating...' : 'Generate Visualization'}
+              {generating ? `Generating… ${formatElapsed(elapsed)}` : 'Generate Visualization'}
+            </Button>
+
+            {/* Notification toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={requestNotifPermission}
+              title={notifEnabled ? 'Notifications enabled' : 'Enable browser notifications'}
+              icon={notifEnabled ? <Bell className="w-4 h-4 text-accent-cyan" /> : <BellOff className="w-4 h-4" />}
+            >
+              {notifEnabled ? 'Notify: On' : 'Notify Me'}
             </Button>
             {displayHtml && (
               <>
